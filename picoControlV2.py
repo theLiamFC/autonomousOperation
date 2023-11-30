@@ -25,7 +25,6 @@ fred.connect()
 print("Connected and Subscribed")
 
 location = ""
-updown = False
 message = []
 targetHistoryX = []
 targetHistoryY = []
@@ -44,7 +43,8 @@ def unitStep(target, magnet, step, p):
 
 
 def checkTarget(target, retreived):
-    global targetHistory
+    global targetHistoryX
+    global targetHistoryY
 
     # BUG if target has been received and is out of view
     # last received target position will be the OG position
@@ -58,39 +58,41 @@ def checkTarget(target, retreived):
         avgTargetY = sum(targetHistoryY) / len(targetHistoryY)
 
     if abs(target[0] - avgTargetX) < 30 and abs(target[1] - avgTargetY) < 30:
-        retreived = False
         return False
     else:
-        retreived = True
         return True
 
 
 def whenCalled(topic, msg):
     global message  # Use nonlocal to refer to the location variable in the outer function
-    print(f"topic {topic} received message {msg}")
     message = msg.decode().split()  # Update the entire location list
-    print(message)
+    print("Got Message")
 
 
-## Receive positioning from MQTT
+## Main Function
 def receive_positions():
-    global updown
-    global message  # Use nonlocal to refer to the location variable in the outer function
+    # MQTT initiation
+    fred.set_callback(whenCalled)
+    fred.subscribe(topic_pub)
 
+    # continuous variables outside of loop
     target = []
     magnet = []
     locked = [False, False]
     retreived = False
 
+    # Main Loop
+    # Should only exit after target is retreived
     while True:
-        fred.set_callback(whenCalled)
-        fred.subscribe(topic_pub)
+        # check for messages
         fred.check_msg()
 
+        # reset magnet position
         magnet = []
 
+        # loop while target has not been retrieved
         if not retreived:
-            # update data
+            # update data depending on what is received
             if len(message) == 4:  # target and magnet
                 print(message[0], message[1])
                 target = [int(message[0]), int(message[1])]
@@ -99,52 +101,62 @@ def receive_positions():
                 magnet = [int(message[1]), int(message[2])]
             elif len(message) == 2:  # just target
                 target = [int(message[0]), int(message[1])]
-            else:
+            else:  # no data
                 print("Bad message / no data")
                 continue
 
+            # print target and magnet data
+            # target should always be available because it is not reset
+            # magnet might not be if it was not included in last packet
             print("Target: ", target, " Magnet: ", magnet)
 
             # check availability of data to proceed with motor control
             # BUG vulnerable to glitch in target data
             # ie if camera vision detects blue somewhere else for a split second
-            if len(target) == 0:  # no target position received ever
-                continue
-            elif len(magnet) == 0:  # no magnet position received in last message
-                continue
-            else:
-                if abs(target[0] - magnet[0]) > 5:  # X margin of error
+            if len(target) == 0 or len(magnet) == 0:
+                continue  # no target or magnet position available
+            else:  # proceed with positioning control
+                if abs(target[0] - magnet[0]) > 5:  # outside X margin of error
                     locked[0] = False
                     arm.move(
                         arm.xPos + unitStep(target[0], magnet[0], 1, 0.5), arm.yPos, 8
                     )
-                else:
+                else:  # inside X margin of error
                     locked[0] = True
                     print("X Coordinate is Locked")
-                if abs(target[1] - magnet[1]) > 5:  # Y margin of error
+                if abs(target[1] - magnet[1]) > 5:  # outside Y margin of error
                     locked[1] = False
                     arm.move(
                         arm.yPos + unitStep(target[1], magnet[1], 0.1, 0.05),
                         arm.yPos,
                         8,
                     )
-                else:
+                else:  # inside Y margin of error
                     locked[0] = True
                     print("Y Coordinate is Locked")
 
+            # proceed with retrieval if both X and Y are locked
             if locked[0] and locked[1]:
                 print("Retreiving Target")
-                arm.move(arm.xPos, arm.yPos, 0)
+                arm.move(arm.xPos, arm.yPos, 0)  # down
                 time.sleep(0.5)
-                arm.move(arm.xPos, arm.yPos, 8)
+                arm.move(arm.xPos, arm.yPos, 8)  # up
                 time.sleep(0.5)
-                arm.move(0, 13, 8)
+                arm.move(0, 13, 8)  # get out of cameras way
                 retreived = True
-        elif checkTarget(target, retreived):
-            print("Target Succesfully Retreived !!!")
-            break
-        else:
-            print("Retrieval Attempt Not Succesful :(")
+
+        # check if motor retreival sequence has occured
+        if retreived:
+            # check if camera can verify target has been removed
+            if checkTarget(target, retreived):
+                retreived = True
+                print("Target Succesfully Retreived !!!")
+                break
+            # if target has not been removed continue with loop
+            else:
+                retreived = False
+                print("Retrieval Attempt Not Succesful :(")
 
 
+# start program
 receive_positions()
