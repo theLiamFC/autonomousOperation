@@ -46,7 +46,7 @@ def checkTarget(target, retreived):
     global targetHistoryX
     global targetHistoryY
 
-    # BUG if target has been received and is out of view
+    # BUG if target has been retrieved and is out of view the whole time
     # last received target position will be the OG position
     # resulting in false negative
 
