@@ -119,7 +119,7 @@ def receive_positions():
                 if abs(target[0] - magnet[0]) > 5:  # outside X margin of error
                     locked[0] = False
                     arm.move(
-                        arm.xPos + unitStep(target[0], magnet[0], 1, 0.5), arm.yPos, 8
+                        arm.xPos + unitStep(target[0], magnet[0], 1, 0.1), arm.yPos, 8
                     )
                 else:  # inside X margin of error
                     locked[0] = True
@@ -127,7 +127,7 @@ def receive_positions():
                 if abs(target[1] - magnet[1]) > 5:  # outside Y margin of error
                     locked[1] = False
                     arm.move(
-                        arm.yPos + unitStep(target[1], magnet[1], 0.1, 0.05),
+                        arm.yPos + unitStep(target[1], magnet[1], 0.1, 0.03),
                         arm.yPos,
                         8,
                     )
