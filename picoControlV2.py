@@ -3,26 +3,25 @@ import ArmDrive
 import Servo
 import time
 import network
+import myWifi
 
-arm = ArmDrive.ArmDrive(
-    pinA=15, pinB=12, pinM=13, pinStep=9, pinDir=8, lenA=10, lenB=10
-)
-
+# Network Information
 broker = "10.243.65.201"  # change this as needed
 ssid = "Tufts_Wireless"
 password = ""
 topic_pub = "hello"  # publishing to this topic
-# topic_sub = "Pico/listen" #in case 2-way communication, subscribe to the topic that the other device is publishing to
-wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
-wlan.connect(ssid, password)
-while wlan.isconnected() == False:
-    print("Waiting for connection...")
-    time.sleep(1)
-print("Connected to WiFi")
+
+# Connect to Wifi
+myWifi.connect(myWifi.TUFTS)
+
+# Initialize MQTT Connection
 fred = mqtt.MQTTClient("pico", broker, keepalive=600)
 fred.connect()
 print("Connected and Subscribed")
+
+arm = ArmDrive.ArmDrive(
+    pinA=15, pinB=12, pinM=13, pinStep=9, pinDir=8, lenA=10, lenB=10
+)
 
 location = ""
 message = []
@@ -46,18 +45,22 @@ def checkTarget(target, retreived):
     global targetHistoryX
     global targetHistoryY
 
-    # BUG if target has been retrieved and is out of view the whole time
+    # BUG if target has been received and is out of view
     # last received target position will be the OG position
     # resulting in false negative
 
-    if not retreived:
+    if not retreived:  # add target value to historical set
         targetHistoryX.append(target[0])
         targetHistoryY.append(target[1])
-    else:
+    else:  # find average from historical set
         avgTargetX = sum(targetHistoryX) / len(targetHistoryX)
         avgTargetY = sum(targetHistoryY) / len(targetHistoryY)
 
+    # compare current target position to historical average
     if abs(target[0] - avgTargetX) < 30 and abs(target[1] - avgTargetY) < 30:
+        # reset historical target data in case it was moved
+        targetHistoryX = []
+        targetHistoryY = []
         return False
     else:
         return True
@@ -127,7 +130,7 @@ def receive_positions():
                 if abs(target[1] - magnet[1]) > 5:  # outside Y margin of error
                     locked[1] = False
                     arm.move(
-                        arm.yPos + unitStep(target[1], magnet[1], 0.1, 0.03),
+                        arm.yPos + unitStep(target[1], magnet[1], 0.1, 0.05),
                         arm.yPos,
                         8,
                     )
