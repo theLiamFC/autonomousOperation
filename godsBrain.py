@@ -88,42 +88,6 @@ def findRobot(img):
                 2,
             )
             package[0] = [x, y]
-            # # get number of sides
-            # approx = cv2.approxPolyDP(
-            #     contour, 0.01 * cv2.arcLength(contour, True), True
-            # )
-
-            # # draw contour of shapes
-            # # scene = cv2.drawContours(scene, [contour], 0, (0, 0, 255), 5)
-
-            # # finding center point of shape
-            # M = cv2.moments(contour)
-            # if M["m00"] != 0.0:
-            #     x = int(M["m10"] / M["m00"])
-            #     y = int(M["m01"] / M["m00"])
-
-            # if len(approx) <= 6:
-            #     cv2.putText(
-            #         img,
-            #         "Base",
-            #         (x, y),
-            #         cv2.FONT_HERSHEY_SIMPLEX,
-            #         0.6,
-            #         (255, 255, 255),
-            #         2,
-            #     )
-            #     package[0] = [x, y]
-            # elif len(approx) > 6:
-            #     cv2.putText(
-            #         img,
-            #         "Magnet",
-            #         (x, y),
-            #         cv2.FONT_HERSHEY_SIMPLEX,
-            #         0.6,
-            #         (255, 255, 255),
-            #         2,
-            #     )
-            #     package[1] = [x, y]
 
     return package
 
