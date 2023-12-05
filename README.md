@@ -5,31 +5,28 @@ This project involves the creation of a robotic system capable of playing the ga
 <h2>File Descriptions</h2>
 <h3>godsBrain.py</h3>
 This file contains a collection of functions responsible for image processing. It is a crucial component as it processes visual data obtained by the robot's camera to identify and analyze the game board, specifically targeting the end effector and the game piece that needs to be removed.
-\n
-Functions Include:
-
-findTarget(img)\n
-findRobot(img)\n
-imageGUI(img, target, robot)\n
+<br>
+Functions Include:<br>
+findTarget(img)<br>
+findRobot(img)<br>
+imageGUI(img, target, robot)<br>
 
 <h3>godsEye.py</h3>
 This file initiates the camera system and facilitates the communication of image processing data to a Raspberry Pi Pico using MQTT (Message Queuing Telemetry Transport). It serves as the bridge between the visual perception (godsBrain.py) and the motor control logic on the Pico.
 
 <h3>ArmDrive.py</h3>
 This file, residing on the Raspberry Pi Pico, encapsulates the motor and servo control logic. It contains a class that coordinates the movements of the robotic arm's three degrees of freedom based on the input received from godsEye.py. The class utilizes the stepper motor for linear movement and two servos for 2-DOF arm control. It also adjusts the end effector so it is always vertical.
-\n
-Class features:
-
-ArmDrive.init(pinA, pinB, pinM, pinStep, pinDir, lenA, lenB)\n
-ArmDrive.move(x,y,z)\n
-ArmDrive.moveRaw(angA, angB, angM)\n
+<br>
+Class features:<br>
+ArmDrive.init(pinA, pinB, pinM, pinStep, pinDir, lenA, lenB)<br>
+ArmDrive.move(x,y,z)<br>
+ArmDrive.moveRaw(angA, angB, angM)<br>
 
 <h3>picoControl.py</h3>
 This file on the Raspberry Pi Pico receives data from godsEye.py over MQTT and implements a proportional controller along with logic to determine the optimal movements for the robotic arm. It acts as the brain of the system, making decisions based on the visual input to successfully execute the task of removing and verifying the removal of the game piece. The logic is based on a state machine and uses Asyncio to check for new MQTT messages while the arm is in movement.
-\n
-Key functionalities:
 
-MQTT data reception from godsEye.py\n
-Proportional controller implementation\n
-Decision-making logic for optimal arm movements\n
-Verification of game piece removal\n
+Key functionalities:<br>
+MQTT data reception from godsEye.py<br>
+Proportional controller implementation<br>
+Decision-making logic for optimal arm movements<br>
+Verification of game piece removal<br>
