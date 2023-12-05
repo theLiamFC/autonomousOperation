@@ -28,3 +28,6 @@ MQTT data reception from godsEye.py<br>
 Proportional controller implementation<br>
 Decision-making logic for optimal arm movements<br>
 Verification of game piece removal<br>
+
+<h3>t3st files</h3>
+There are a series of test files included in this repository that can be used for isolating and debugging specific aspects of the code. They are not set up to be used for unit testing but rather visual verification (hence why they are spelled t3st and not test).
